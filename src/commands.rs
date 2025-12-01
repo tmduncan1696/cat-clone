@@ -2,14 +2,16 @@ use std::{fs, error::Error, process};
 
 use crate::cli::Cli;
 
+#[derive(Debug, PartialEq)]
 pub enum Command {
-    SqueezeBlank,
+    SqueezeBlanks,
     ShowNonblankLineNumbers,
     ShowLineNumbers,
     ShowTabs,
     ShowEnds,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct CatCommands {
     lines: Vec<String>,
     commands: Vec<Command>
@@ -25,7 +27,7 @@ impl CatCommands {
         let mut commands = Vec::new();
 
         if cli.squeeze_blanks {
-            commands.push(Command::SqueezeBlank)
+            commands.push(Command::SqueezeBlanks)
         };
         if cli.number_nonblank {
             commands.push(Command::ShowNonblankLineNumbers)
@@ -46,18 +48,30 @@ impl CatCommands {
         }
     }
 
-    pub fn modify_lines(&self) -> Vec<String> {
+    pub fn modify_lines(self: CatCommands) -> CatCommands {
         let mut lines = self.lines.clone();
         for command in &self.commands {
             lines = match command {
-                Command::SqueezeBlank => squeeze_blanks(lines),
+                Command::SqueezeBlanks => squeeze_blanks(lines),
                 Command::ShowNonblankLineNumbers => show_nonblank_line_numbers(lines),
                 Command::ShowLineNumbers => show_line_numbers(lines),
                 Command::ShowTabs => show_tabs(lines),
                 Command::ShowEnds => show_ends(lines),
             };
         };
-        lines.to_vec()
+
+        CatCommands {
+            lines,
+            ..self
+        }
+
+    }
+
+    pub fn print_lines(self: &CatCommands) -> () {
+        for line in &self.lines {
+            println!("{line}")
+        };
+        ()
     }
 }
 
@@ -176,6 +190,28 @@ test".to_string()
         assert_eq!(
             out,
             vec!["test$", "test$", "$", "test\ttest$", "$", "$", "test$"]
+        );
+    }
+
+    #[test]
+    fn test_modify_lines() {
+        let lines: Vec<String> = TEST_DATA.lines().map(|x| x.to_string()).collect();
+
+        let commands: Vec<Command> = vec![Command::SqueezeBlanks, Command::ShowNonblankLineNumbers, Command::ShowTabs, Command::ShowEnds];
+
+        let cat_commands: CatCommands = CatCommands {
+            lines,
+            commands
+        };
+
+        let cat_commands = cat_commands.modify_lines();
+
+        assert_eq!(
+            cat_commands,
+            CatCommands {
+                lines: vec!["     1  test$".to_string(), "     2  test$".to_string(), "$".to_string(), "     3  test^Itest$".to_string(), "$".to_string(), "     4  test$".to_string()],
+                commands: vec![Command::SqueezeBlanks, Command::ShowNonblankLineNumbers, Command::ShowTabs, Command::ShowEnds]
+            }
         );
     }
 }

@@ -11,11 +11,8 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn Error>> {
 
     let commands = CatCommands::from_cli(&cli);
 
-    let lines = commands.modify_lines();
-
-    for line in lines {
-        println!("{line}")
-    }
+    let commands = commands.modify_lines();
+    commands.print_lines();
 
     Ok(())
 }
