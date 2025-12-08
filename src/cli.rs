@@ -3,7 +3,7 @@ use clap::{Parser, ArgAction};
 #[derive(Parser, Debug)]
 #[command(name = "Cat Clone", about = "Concatenate FILES to standard output")]
 pub struct Cli {
-    #[arg(value_parser, num_args = 1.., value_delimiter = ' ')]
+    #[arg(value_parser, num_args = 0.., value_delimiter = ' ')]
     pub files: Vec<String>,
 
     #[arg(
