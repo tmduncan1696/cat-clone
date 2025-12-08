@@ -1,4 +1,4 @@
-use std::{fs, error::Error, process};
+use std::{fs, io, error::Error, process};
 
 use crate::cli::Cli;
 
@@ -19,10 +19,14 @@ pub struct CatCommands {
 
 impl CatCommands {
     pub fn from_cli(cli: &Cli) -> Self {
-        let lines: Vec<String> = get_lines_from_files(&cli.files).unwrap_or_else(|_err| {
-            eprintln!("Cannot read files: {}", cli.files.join(", "));
-            process::exit(1);
-        });
+        let lines: Vec<String> = if cli.files.is_empty() {
+            io::stdin().lines().map(|x| x.unwrap()).collect::<Vec<String>>()
+        } else {
+            get_lines_from_files(&cli.files).unwrap_or_else(|_err| {
+                eprintln!("Cannot read files: {}", cli.files.join(", "));
+                process::exit(1);
+            })
+        };
 
         let mut commands = Vec::new();
 
@@ -214,4 +218,5 @@ test".to_string()
             }
         );
     }
+
 }
