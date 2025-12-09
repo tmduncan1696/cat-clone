@@ -80,9 +80,17 @@ impl CatCommands {
 }
 
 fn get_lines_from_files(files: &Vec<String>) -> Result<Vec<String>, Box<dyn Error>> {
-    let contents: String = files.into_iter().map(|file| fs::read_to_string(file)).collect::<Result<String, _>>()?;
+    let contents: String = files.into_iter().map(|file| read_file(file)).collect::<Result<String, _>>()?;
     Ok(contents.lines().map(|s| s.to_string()).collect())
 } 
+
+fn read_file(file: &String) -> Result<String, Box<dyn Error>> {
+    if *file == String::from("-") {
+        Ok(io::stdin().lines().collect::<Result<String, _>>()? + "\n")
+    } else {
+        Ok(fs::read_to_string(file)?)
+    }
+}
 
 fn squeeze_blanks(lines: Vec<String>) -> Vec<String> {
     let mut out: Vec<String> = lines;
